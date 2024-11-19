@@ -1,0 +1,219 @@
+
+\documentclass[UTF8, a4paper, titlepage, twoside]{ctexart}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{titlesec}
+\usepackage{minted}
+\usepackage[dvipsnames, svgnames, x11names]{xcolor}
+% 设置边距和页面布局
+\geometry{left=2.5cm, right=1.5cm, top=1.5cm, bottom=1.5cm, inner=2cm, outer=1cm}
+% ------------------------------子章节设置------------------------------
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+\AtBeginDocument{
+	\setlength{\abovedisplayskip}{0.2em}
+	\setlength{\belowdisplayskip}{0.2em}
+	\setlength{\parskip}{0.5em}
+}
+\title{	
+	\normalfont\normalsize
+	\textsc{Beijing Normal University}\\ 
+	\vspace{25pt} 
+	\rule{\linewidth}{0.5pt}\\ 
+	\vspace{20pt} 
+	{\Huge Template}\\ 
+	\vspace{12pt} 
+	\rule{\linewidth}{2pt}\\ 
+	\vspace{12pt} 
+}
+\author{Pray Never} 
+\date{\normalsize\today} 
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+\section{geometry}
+\subsection{convex.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#ifdef IGNORE_THIS_FILE
+  struct Point {
+     ll x,y;
+  };
+  auto andrew = [](vector<Point>& p) -> vector<Point> {    // 传入下标从零开始的点数组，返回凸包数组
+    auto cmp = [](Point &a, Point &b) -> bool {
+      if(a.x != b.x) return a.x < b.x;
+      return a.y < b.y;
+    };
+    auto cross = [](Point &u, Point &v, Point &w) -> bool {
+      ll x1 = u.x - v.x, y1 = u.y - v.y;
+      ll x2 = w.x - v.x, y2 = w.y - v.y;
+      return x1 * y2 - x2 * y1 > 0; //如果不希望在凸包的边上有输入点。把 > 改成 >=
+    };
+    sort(p.begin(), p.end(), cmp);
+    int n = p.size(), m = 0;
+    vector<Point> res(n + 1);
+    for(int i = 0; i < n; ++i){
+      while(m > 1 && !cross(res[m - 1],res[m - 2], p[i])) --m;
+      res[m++] = p[i];
+    }
+    int kk = m;
+    for(int i = n - 2; i >= 0; i--){
+      while(m > kk && !cross(res[m - 1], res[m - 2], p[i])) --m;
+      res[m++] = p[i];
+    }
+    if(n > 1) --m;//凸包有m个顶点
+    res.erase(res.begin() + m, res.end());
+    return res;
+  };
+#endif
+\end{minted}
+
+\clearpage
+\section{graph}
+\subsection{LCA.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#ifdef IGNORE_THIS_FILE
+  vector<vector<int> > a(n + 1, vector<int>(20)), v(n + 1);
+  vector<int> dep(n + 1);
+  auto build = [&](int u, int fa, auto&& self) -> void {
+    dep[u] = dep[fa] + 1, a[u][0] = fa;
+    for(int i = 1; i <= 19; ++i)
+      a[u][i] = a[a[u][i - 1]][i - 1];
+    for(int i: v[u]){
+      if(i == fa) continue;
+      self(i, u, self);
+    }
+  };
+  auto lca = [&](int x, int y) -> int {
+    if(dep[y] > dep[x]) swap(x, y);
+    for(int i = 19; i >= 0; --i){
+      if(dep[a[x][i]] >= dep[y]) 
+        x = a[x][i];
+    }
+    if(x == y) return x;
+    for(int i = 19; i >= 0; --i){
+      if(a[x][i] != a[y][i])
+        x = a[x][i], y = a[y][i];
+    }
+    return a[x][0];
+  };
+#endif
+
+
+
+\end{minted}
+
+\subsection{tarjan.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#ifdef IGNORE_THIS_FILE
+  int dfn_cnt = 0, scc_cnt = 0;
+  vector<int> dfn(n + 1), low(n + 1), scc_id(n + 1); 
+  stack<int> s;
+  vector<bool> in_stack(n + 1);
+  vector<vector<int> > v(n + 1), scc(n + 1);
+  // scc_id是每个节点所属于的scc编号, scc是这个编号下的所有节点
+  auto tarjan = [&](int u, auto&& self) -> void {
+    dfn[u] = low[u] = ++dfn_cnt;
+    s.push(u), in_stack[u] = true;
+    for(int i: v[u]){
+      if(!dfn[i]){
+        self(i, self);
+        low[u] = min(low[u], low[i]);
+      }
+      else if(in_stack[i])
+        low[u] = min(low[u], dfn[i]);
+    }
+    if(dfn[u] == low[u]){
+      int tp;
+      ++scc_cnt;
+      do{
+        tp = s.top();
+        scc_id[tp] = scc_cnt;
+        scc[scc_cnt].push_back(tp);
+        in_stack[tp] = false;
+        s.pop();
+      } while(tp != u);
+    }
+  };
+#endif
+\end{minted}
+
+\clearpage
+\section{heading}
+\subsection{debug.h}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+ #include <bits/stdc++.h>
+ #define typet typename T
+ #define typeu typename U
+ #define types typename... Ts
+ #define tempt template <typet>
+ #define tempu template <typeu>
+ #define temps template <types>
+ #define tandu template <typet, typeu>
+
+ tandu std::ostream& operator<<(std::ostream& os, const std::pair<T, U>& p) {
+ return os << '<' << p.ff << ',' << p.ss << '>';
+ } 
+ template <
+ typet, typename = decltype(std::begin(std::declval<T>())),
+ typename = std::enable_if_t<!std::is_same_v<T, std::string>>>
+ std::ostream& operator<<(std::ostream& os, const T& c) {
+ auto it = std::begin(c);
+ if (it == std::end(c)) return os << "{}";
+ for (os << '{' << *it; ++it != std::end(c); os << ',' << *it);
+ return os << '}';
+ }
+ #define debug(arg...) \
+ do { \
+  std::cerr << "[" #arg "] :"; \
+  dbg(arg); \
+ }while(false)
+
+ temps void dbg(Ts... args) {
+ (..., (std::cerr << ' ' << args));
+ std::cerr << '\n';
+ }
+
+\end{minted}
+
+\subsection{duipai.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#ifdef IGNORE_THIS_FILE
+  system("g++ -std=c++2a wa.cpp -o/wa");
+  system("g++ -std=c++2a ac.cpp -o/ac");
+  system("g++ -std=c++2a gen.cpp -o/gen");
+  for(int i = 1; i <= 50; i++){
+    std::cerr << "Test" << i << " : ";
+    system("./gen > gen.in");
+    system("./ac < gen.in > ac.out");
+    system("./wa < gen.in > wa.out");
+    if (system("diff ac.out wa.out")) {
+      std::cerr << "ERR\n";
+      return 0;
+    }
+    std::cerr << "AC\n";
+  }
+#endif  
+\end{minted}
+
+\subsection{heading.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+  #include <bits/stdc++.h>
+  using namespace std;
+  using ll = long long;
+  using i128 = __int128;
+  #define ff first
+  #define ss second
+  #include "debug.h"
+  constexpr int mod = 998244353;
+  constexpr ll INF = 1e18;
+  constexpr double pi = 3.141592653589793;
+  constexpr double eps = 1e-6;
+
+
+\end{minted}
+
+\clearpage
+
+\end{document}
