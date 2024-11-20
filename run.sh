@@ -1,3 +1,4 @@
+python3 script.py
 xelatex -shell-escape template.tex
 xelatex -shell-escape template.tex
 rm -f template.aux template.log template.out template.toc
