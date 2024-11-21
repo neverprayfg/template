@@ -1,6 +1,6 @@
 #ifdef IGNORE_THIS_FILE
   // vector<int> fac(n + 1);
-  auto sieve = [&](int n) -> vector<int> {
+  vector<int> sieve(int n){
     vector<int> prime;
     vector<bool> no_prime(n + 1);
     for(int i = 2; i <= n; ++i){
@@ -16,5 +16,5 @@
       }
     }
     return prime;
-  };
+  }
 #endif

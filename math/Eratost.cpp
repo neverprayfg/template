@@ -1,5 +1,5 @@
 #ifdef IGNORE_THIS_FILE
-  auto sieve = [](int n) -> vector<int> {
+  vector<int> sieve(int n){
     vector<bool> is_prime(n + 1);
     vector<int> prime;
     for(int i = 2; i <= n; ++i){
@@ -16,5 +16,5 @@
         prime.push_back(i);
     }
     return prime;
-  };
+  }
 #endif

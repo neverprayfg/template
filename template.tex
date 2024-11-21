@@ -33,6 +33,39 @@
 \maketitle
 \tableofcontents
 \newpage
+\section{data structure}
+\subsection{trie.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#ifdef IGNORE_THIS_FILE
+  int cnt = 0;
+  vector<vector<int> > node(1, vector<int>(26));
+  vector<int> isval(1);
+  auto insert = [&](string& s, int len) -> void {
+    int p = 0;
+    for(int i = 0; i < len; i++){
+      int c = s[i] - 'a';
+      if(!node[p][c]){
+        node.push_back(vector<int>(26, 0));
+        isval.push_back(0);
+        node[p][c] = ++cnt;
+      }
+      p = node[p][c];
+    }
+    ++isval[p];
+  };
+  auto find = [&](string& s, int len) -> int {
+    int p = 0;
+    for(int i = 0; i < len; i++){
+      int c = s[i] - 'a';
+      if(!node[p][c]) return 0;
+      p = node[p][c];
+    }
+    return isval[p];
+  };
+#endif
+\end{minted}
+
+\clearpage
 \section{geometry}
 \subsection{convex.cpp}
 \begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
@@ -219,7 +252,7 @@
 \subsection{Eratost.cpp}
 \begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
 #ifdef IGNORE_THIS_FILE
-  auto sieve = [](int n) -> vector<int> {
+  vector<int> sieve(int n){
     vector<bool> is_prime(n + 1);
     vector<int> prime;
     for(int i = 2; i <= n; ++i){
@@ -236,7 +269,7 @@
         prime.push_back(i);
     }
     return prime;
-  };
+  }
 #endif
 \end{minted}
 
@@ -244,7 +277,7 @@
 \begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
 #ifdef IGNORE_THIS_FILE
   // vector<int> fac(n + 1);
-  auto sieve = [&](int n) -> vector<int> {
+  vector<int> sieve(int n){
     vector<int> prime;
     vector<bool> no_prime(n + 1);
     for(int i = 2; i <= n; ++i){
@@ -260,11 +293,11 @@
       }
     }
     return prime;
-  };
+  }
 #endif
 \end{minted}
 
-\subsection{pollar.cpp}
+\subsection{pollarrho.cpp}
 \begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
 #ifdef IGNORE_THIS_FILE
   using ll = long long;
@@ -385,6 +418,38 @@
   //       get_tot(get_tot, prime, tot, pos + 1, val * sum);
   //   }    
   // };
+#endif
+\end{minted}
+
+\clearpage
+\section{sort}
+\subsection{mg_sort.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#ifdef IGNORE_THIS_TILE
+  void mg_sort(int l, int r, vector<int>& a) {
+    if(l == r)
+      return;
+    int mid = (l + r) >> 1;
+    mg_sort(l, mid, a);
+    mg_sort(mid + 1, r, a);
+    auto merge = [](int l, int r, int mid, vector<int>& a) -> void {
+      vector<int> b;
+      int lp = l;
+      int rp = r + 1;
+      while(lp <= mid && rp <= r){
+        if(a[lp] < a[rp])
+          b.push_back(a[lp++]);
+        else  
+          b.push_back(a[rp++]);
+      }
+      while(lp <= mid)
+        b.push_back(a[lp++]);
+      while(rp <= r)
+        b.push_back(a[rp++]);
+      copy(b.begin(), b.end(), a.begin() + l);
+    };
+    merge(l, r, mid, a);
+  };
 #endif
 \end{minted}
 
