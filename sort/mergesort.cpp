@@ -1,10 +1,10 @@
 #ifdef IGNORE_THIS_TILE
-  void mg_sort(int l, int r, vector<int>& a) {
+  void merge_sort(int l, int r, vector<int>& a) {
     if(l == r)
       return;
     int mid = (l + r) >> 1;
-    mg_sort(l, mid, a);
-    mg_sort(mid + 1, r, a);
+    merge_sort(l, mid, a);
+    merge_sort(mid + 1, r, a);
     auto merge = [](int l, int r, int mid, vector<int>& a) -> void {
       vector<int> b;
       int lp = l;
