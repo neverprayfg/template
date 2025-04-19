@@ -34,69 +34,135 @@
 \tableofcontents
 \newpage
 \section{data structure}
+\subsection{01tries.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int N = 1e5 + 10;
+vector<pair<int, int> > v[N];
+int cnt;
+int node[5 * N][2];
+bool isval[5 * N];
+void insert(int val){
+    int p = 0;
+    stack<int> s;
+    for(int i = 0; i < 31; ++i){
+      s.push(val % 2);
+      val /= 2;
+    }
+    for(int i = 0; i < 31; i++){
+        int c = s.top();
+        s.pop();
+        if(!node[p][c]) node[p][c] = ++cnt;
+        p = node[p][c];
+    }
+    isval[p]++;
+}
+int a[N];
+void dfs(int pos, int far){
+  for(auto[u, w]: v[pos]){
+    if(u == far);
+      continue;
+    a[u] = a[pos] ^ w;
+    dfs(u, pos);
+  }
+}
+int query(int val){
+
+}
+int main(){
+  int n;
+  cin >> n;
+  for(int i = 1; i < n; ++i){
+    int x, y, z;
+    cin >> x >> y >> z;
+    v[x].emplace_back(y, z);
+    v[y].emplace_back(x, z);
+  }
+  dfs(1, 0);
+  int maxy = 0;
+  for(int i = 1; i <= n; ++i){
+    maxy = max(maxy, query(a[i]));
+  }
+}
+\end{minted}
+
 \subsection{persistant-segement-tree.cpp}
 \begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
 #ifdef IGNORE_THIS_FILE
-  int n, tot = 0;
-  vector<int> ls(n << 5), rs(n << 5), sum(n << 5);
-  vector<int> root(n + 1);
-  auto update = [&](int q, int l, int r, int rt, auto&& self) -> int {
-    int dir = ++tot;
-    ls[dir] = ls[rt], rs[dir] = rs[rt];
-    if(l == r){
-      sum[dir] = sum[rt] + 1;
-      return dir;
+struct PTR{
+    int n, tot;
+    vector<int> ls, rs, sum, root;
+    PTR(int _n){
+        n = _n;
+        tot = 0;
+        ls = vector<int>(n << 6), rs = vector<int>(n << 6), sum = vector<int>(n << 6);
+        root = vector<int>(n + 1);
     }
-    int mid = (l + r) >> 1;
-    if(q <= mid)
-      ls[dir] = self(q, l, mid, ls[dir], self);
-    else
-      rs[dir] = self(q, mid + 1, r, rs[dir], self);
-    sum[dir] = sum[ls[dir]] + sum[rs[dir]];
-    return dir;
-  };
-  auto query = [&](int q, int l, int r, int tl, int tr, auto&& self) -> int {
-    if(l == r)
-      return l;
-    int mid = (l + r) >> 1;
-    int sum1 = sum[ls[tr]] - sum[ls[tl]];
-    if(q <= sum1)
-      return self(q, l, mid, ls[tl], ls[tr], self);
-    else
-      return self(q - sum1, mid + 1, r, rs[tl], rs[tr], self);
-  };
+    int update(int q, int l, int r, int rt){
+        int dir = ++tot;
+        ls[dir] = ls[rt], rs[dir] = rs[rt];
+        if(l == r){
+          sum[dir] = sum[rt] + 1;
+          return dir;
+        }
+        int mid = (l + r) >> 1;
+        if(q <= mid)
+          ls[dir] = update(q, l, mid, ls[dir]);
+        else
+          rs[dir] = update(q, mid + 1, r, rs[dir]);
+        sum[dir] = sum[ls[dir]] + sum[rs[dir]];
+        return dir;
+    };
+    int query(int q, int l, int r, int tl, int tr){
+        if(l == r)
+          return l;
+        int mid = (l + r) >> 1;
+        int sum1 = sum[ls[tr]] - sum[ls[tl]];
+        if(q <= sum1)
+          return query(q, l, mid, ls[tl], ls[tr]);
+        else
+          return query(q - sum1, mid + 1, r, rs[tl], rs[tr]);
+      };    
+};
+
 #endif
+
 
 \end{minted}
 
 \subsection{trie.cpp}
 \begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
 #ifdef IGNORE_THIS_FILE
+struct Trie {
+  static const int N = 5000100; // 预设最大节点数
   int cnt = 0;
-  vector<vector<int> > node(1, vector<int>(26));
-  vector<int> isval(1);
-  auto insert = [&](string& s, int len) -> void {
+  vector<vector<int>> node{N, vector<int>(26)};
+  vector<int> isval{N};
+
+  void insert(string& s, int len) {
     int p = 0;
-    for(int i = 0; i < len; i++){
+    for(int i = 0; i < len; ++i){
       int c = s[i] - 'a';
       if(!node[p][c]){
-        node.push_back(vector<int>(26, 0));
-        isval.push_back(0);
         node[p][c] = ++cnt;
       }
       p = node[p][c];
     }
     ++isval[p];
-  };
-  auto find = [&](string& s, int len) -> int {
+  }
+
+  int find(string& s, int len) {
     int p = 0;
-    for(int i = 0; i < len; i++){
+    for(int i = 0; i < len; ++i){
       int c = s[i] - 'a';
       if(!node[p][c]) return 0;
       p = node[p][c];
     }
     return isval[p];
-  };
+  }
+};
 #endif
 \end{minted}
 
@@ -139,6 +205,344 @@
 
 \clearpage
 \section{graph}
+\subsection{Dinic.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#ifdef IGNORE_THIS_FILE
+constexpr int N = 500;
+constexpr ll INF = 0x3ffffffffffffff;
+struct edge {
+    int from, to;
+    ll can_flow;
+    edge(int f, int t, ll can_f) : from(f), to(t), can_flow(can_f){};
+};
+struct Dinic {
+    vector<edge> e;
+    vector<int> G[N];
+    int dep[N], cur[N];  
+    int n, m;
+    void init(int n) {
+        this->n = n;
+        for(int i = 0; i <= n; ++i) G[i].clear();
+        e.clear();
+    }
+  
+    void addedge(int from, int to, ll cap) {
+        e.emplace_back(from ,to, cap);
+        e.emplace_back(to, from, 0);
+        m = e.size();
+        G[from].push_back(m - 2);
+        G[to].push_back(m - 1);
+    }
+  
+    bool bfs(int S, int T) {
+        queue<int> q;
+        memset(dep, 0, sizeof(int) * (n + 1));
+  
+        dep[S] = 1;
+        q.push(S);
+        while (q.size()) {
+            int u = q.front();
+            q.pop();
+            for(int i = 0; i < G[u].size(); ++i){
+                int id = G[u][i];
+                const auto&[from, to, can_flow] = e[id];
+                if ((!dep[to]) && can_flow) {
+                    dep[to] = dep[u] + 1;
+                    q.push(to);
+                }
+            }
+        }
+        return dep[T];
+    }
+  
+    ll dfs(int u, int T, ll last_flow) {
+        if (u == T || !last_flow) return last_flow;
+        ll flow = 0;
+        ll f;
+        for (int& i = cur[u]; i < G[u].size(); ++i) {
+            int id = G[u][i];
+            const auto&[from, to, can_flow] = e[id];
+            if (dep[u] + 1 == dep[to] && (f = dfs(to, T, min(last_flow, can_flow))) > 0) {
+                e[id].can_flow -= f;
+                e[id ^ 1].can_flow += f;
+                flow += f;
+                last_flow -= f;
+                if (!last_flow) break;
+            }
+        }
+        return flow;
+      }
+  
+    ll dinic(int S, int T) {
+        ll maxflow = 0;
+        while (bfs(S, T)) {
+            memset(cur, 0, sizeof(cur));
+            maxflow += dfs(S, T, INF);
+        }
+        return maxflow;
+    }
+};
+#endif
+\end{minted}
+
+\subsection{EK.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#ifdef IGNORE_THIS_FILE
+constexpr int N = 250;
+constexpr ll INF = 0x3fffffffffffff;
+struct Edge {
+    int from, to;
+    ll can_flow;   
+    Edge(int u, int v, ll can_f) : from(u), to(v), can_flow(can_f) {}
+};
+struct EK {
+    int n, m;             // n：点数，m：边数
+    vector<Edge> e;   // e：所有边的集合
+    vector<int> G[N];  // G：点 x -> x 的所有边在 e 中的下标
+    ll a[N];     // a：点 x -> BFS 过程中最近接近点 x 的边给它的最大流
+    int p[N];    // p：点 x -> BFS 过程中最近接近点 x 的边
+
+    void init(int n) {
+        for (int i = 0; i <= n; i++) G[i].clear();
+        e.clear();
+    }
+
+    void AddEdge(int from, int to, ll cap) {
+        e.emplace_back(from, to, cap);
+        e.emplace_back(to, from, 0);
+        m = e.size();
+        G[from].push_back(m - 2);
+        G[to].push_back(m - 1);
+    }
+
+    ll Maxflow(int s, int t) {
+        ll max_flow = 0;
+        while(true) {
+            memset(a, 0, sizeof(a));
+            queue<int> qu;
+            qu.push(s);
+            a[s] = INF;
+            while (!qu.empty()) {
+                int u = qu.front();
+                qu.pop();
+                for (int i: G[u]) {  // 遍历以 u 作为起点的边
+                    const auto& [from, to, can_flow] = e[i];
+                    if (!a[to] && can_flow) {
+                        p[to] = i;  // e[i] 是最近接近点 to 的边
+                        a[to] = min(a[u], can_flow);  // 最近接近点 to 的边赋给它的流
+                        qu.push(to);
+                    }
+                }
+                if (a[t]) break;  // 如果汇点接受到了流，就退出 BFS
+            }
+            if (!a[t])
+                break;  // 如果汇点没有接受到流，说明源点和汇点不在同一个连通分量上
+            for (int u = t; u != s; u = e[p[u]].from) {  // 通过 u 追寻 BFS 过程中 s -> t 的路径
+                e[p[u]].can_flow -= a[t];      // 减少路径上边的 can_flow 值
+                e[p[u] ^ 1].can_flow += a[t];  // 增加反向路径的 can_flow 值
+            }
+            max_flow += a[t];
+        }
+        return max_flow;
+    }
+};
+#endif
+\end{minted}
+
+\subsection{ISAP.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#ifdef IGNORE_THIS_FILE
+const int N = 1000;
+const ll INF = 0x3ffffffffffff;
+struct Edge {
+    int from, to;
+    ll can_flow;
+    Edge(int f, int t, ll cap) : from(f), to(t), can_flow(cap){};
+};
+struct ISAP {
+    int n, m; 
+    int s, t; 
+    vector<int> G[N]; 
+    vector<Edge> e; 
+    int dep[N], gap[N], cur[N];
+
+    void init(int _n, int _s, int _t) {
+        this->n = _n, this->s = _s, this->t = _t;
+        for(int i = 0; i <= n; ++i){
+            G[i].clear();
+        }
+    }
+
+    void add_edge(int u, int v, ll cap) {
+        e.emplace_back(u, v, cap);
+        e.emplace_back(v, u, 0);
+        m = e.size();
+        G[u].push_back(m - 2);
+        G[v].push_back(m - 1);
+    }
+
+    void bfs() {
+        memset(dep, 0, sizeof(dep));
+        queue<int> q;
+        q.push(t);
+        dep[t] = 1;
+        gap[1] = 1;
+        while (!q.empty()) {
+            int u = q.front();
+            q.pop();
+            for (int i : G[u]) {
+                int v = e[i].to;
+                if (!dep[v]) {
+                    dep[v] = dep[u] + 1;
+                    gap[dep[v]]++;
+                    q.push(v);
+                }
+            }
+        }
+    }
+
+    ll dfs(int u, ll flow) {
+        if (u == t || !flow) return flow;
+        ll used = 0;
+        for (int &i = cur[u]; i < G[u].size(); ++i) {
+            int id = G[u][i];
+            auto&[from, to, can_flow] = e[id];
+            if (can_flow && dep[u] == dep[to] + 1) {
+                ll tmp = dfs(to, min(flow - used, can_flow));
+                if (tmp) {
+                    e[id].can_flow -= tmp;
+                    e[id ^ 1].can_flow += tmp;
+                    used += tmp;
+                }
+                if (used == flow) return used;
+            }
+        }
+        
+        --gap[dep[u]];
+        if (!gap[dep[u]]) dep[s] = n + 1;
+        ++dep[u];
+        ++gap[dep[u]];
+        return used;
+    }
+
+    ll isap() {
+        ll max_flow = 0;
+        bfs();
+        while (dep[s] <= n) {
+            memset(cur, 0, sizeof(cur));
+            max_flow += dfs(s, INF);
+        }
+        return max_flow;
+    }
+};
+#endif
+\end{minted}
+
+\subsection{Johnson.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+const ll N = 3e3 + 10;
+ll h[N];
+struct edge{
+  ll u;
+  ll w;
+  ll t;
+};
+vector<edge> v;
+struct node{
+  ll u;
+  ll t;
+  bool operator<(const node& other) const{
+    return t < other.t;
+  }
+  bool operator>(const node& other) const{
+    return t > other.t;
+  } 
+};
+priority_queue<node, vector<node>, greater<node>> q;
+vector<node> s[N];
+bool bellmanford(ll n){
+  bool flag = false;
+  for(ll i = 1; i <= n; ++i){
+    flag = false;
+    for(auto j: v){
+      if(h[j.w] > h[j.u] + j.t){
+        h[j.w] = h[j.u] + j.t;
+        flag = true;
+      }
+    }
+    if(!flag){
+      break;
+    }
+  }
+  return flag;
+}
+ll w[N][N];
+void  Dijskal(ll st, ll n){
+  vector<ll> isval(n + 10);
+  w[st][st] = 0;
+  priority_queue<node, vector<node>, greater<node>> q;
+  q.emplace(st, 0);
+  while(!q.empty()){
+    auto u = q.top();
+    q.pop();
+    if(isval[u.u])
+      continue;
+    isval[u.u] = 1;
+    for(auto i: s[u.u]){
+      if(w[st][i.u] > w[st][u.u] + i.t){
+        w[st][i.u] = w[st][u.u] + i.t;
+        q.emplace(i.u, w[st][i.u]);
+      }
+    } 
+  }
+  for(int i = 1; i <= n; ++i){
+    w[st][i] = w[st][i] - h[st] + h[i];
+  }
+}
+int main(){
+  ll n, m;
+  cin >> n >> m;
+  for(ll i = 0; i < m; ++i){
+    ll u, w, t;
+    cin >> u >> w >> t;
+    v.emplace_back(u, w, t);
+  }
+  for(ll i = 1; i <= n; ++i){
+    v.emplace_back(0, i, 0);
+  }
+  if(bellmanford(n)){
+    cout << -1;
+    return 0;
+  }
+  for(auto& i: v){
+    auto&[u, w, t] = i;
+    t += h[u] - h[w];
+  }
+  for(ll i = 0; i < m; ++i){
+    auto&[u, w, t] = v[i];
+    s[u].emplace_back(w, t);
+  }
+  memset(w, 0x3f, sizeof(w));
+  for(ll i = 1; i <= n; ++i){
+    Dijskal(i, n);
+  }
+  for(ll i = 1; i <= n; ++i){
+    ll sum = 0;
+    for(ll j = 1; j <= n; ++j){
+      if(w[i][j] > ll(1e9)){
+        sum += j * ll(1e9);
+      }
+      else
+        sum += w[i][j] * j;
+    }
+    cout << sum << '\n';
+  }
+}
+\end{minted}
+
 \subsection{LCA.cpp}
 \begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
 #ifdef IGNORE_THIS_FILE
@@ -170,6 +574,241 @@
 
 
 
+\end{minted}
+
+\subsection{lcd.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const ll N = 1e6 + 10;
+vector<ll> v[N];
+ll fa[N], dep[N], son[N], sz[N], top[N];
+ll dfn[N], rid[N];   //dfn序列, dfn->标号
+ll bot[N]; //维护子树dfn序结束编号
+ll vl[N];
+ll n, m, r, mod;
+ll cnt = 0;
+
+void dfs1(ll u, ll far){
+  fa[u] = far, dep[u] = dep[far] + 1, sz[u] = 1;
+  for(auto i: v[u]){
+    if(i == far)
+      continue;
+    dfs1(i, u);
+    sz[u] += sz[i];
+    if(sz[son[u]] < sz[i])
+      son[u] = i;
+  }
+}
+void dfs2(ll u, ll head){
+  top[u] = head;
+  dfn[u] = ++cnt;
+  rid[cnt] = u;
+  if(!son[u]){
+    bot[u] = cnt;
+    return;
+  }
+  dfs2(son[u], head);
+  for(auto i: v[u]){
+    if(i == fa[u] || son[u] == i)
+      continue;
+    dfs2(i, i);
+  }
+  bot[u] = cnt;
+}
+ll sm[4 * N];
+ll lz[4 * N];
+void pushup(ll node){
+  sm[node] = sm[node << 1] + sm[node << 1 | 1];
+  sm[node] %= mod;
+}
+
+void pushdown(ll node, ll l, ll r, ll mid){
+  if(lz[node]){
+    lz[node << 1] += lz[node];
+    lz[node << 1] %= mod;
+    lz[node << 1 | 1] += lz[node];
+    lz[node << 1 | 1] %= mod;
+    sm[node << 1] += lz[node] * (mid - l + 1ll);
+    sm[node << 1] %= mod;
+    sm[node << 1 | 1] += lz[node] * (r - mid);
+    sm[node << 1 | 1] %= mod;
+    lz[node] = 0;
+  }
+}
+void build(ll node, ll l, ll r){
+  if(l == r){
+    sm[node] = vl[rid[l]];
+    sm[node] %= mod;
+    return;
+  }
+  ll mid = (l + r) >> 1;
+  build(node << 1, l, mid);
+  build(node << 1 | 1, mid + 1, r);
+  pushup(node);
+}
+
+void update(ll node, ll l, ll r, ll ql, ll qr, ll val){
+  if(ql <= l && r <= qr){
+    sm[node] += val * (r - l + 1ll);
+    sm[node] %= mod;
+    lz[node] += val;
+    lz[node] %= mod;
+    return;
+  }
+  ll mid = (l + r) >> 1;
+  pushdown(node, l, r, mid);
+  if(ql <= mid)
+    update(node << 1, l, mid, ql, qr, val);
+  if(qr > mid)
+    update(node << 1 | 1, mid + 1, r, ql, qr, val);
+  pushup(node);
+}
+
+ll query(ll node, ll l, ll r, ll ql, ll qr){
+  if(ql <= l && r <= qr){
+    return sm[node] % mod;
+  }
+  ll mid = (l + r) >> 1;
+  pushdown(node, l, r, mid);
+  ll sum = 0;
+  if(ql <= mid)
+    sum += query(node << 1, l, mid, ql, qr);
+  if(qr > mid)
+    sum += query(node << 1 | 1, mid + 1, r, ql, qr);
+  return sum % mod;
+}
+
+void add_path(ll u, ll v, ll val){
+  while(top[u] != top[v]){
+    if(dep[top[u]] < dep[top[v]])
+      swap(u, v);
+    update(1, 1, n, dfn[top[u]], dfn[u], val);
+    u = fa[top[u]];
+  }
+  if(dep[u] < dep[v]) swap(u, v);
+  update(1, 1, n, dfn[v], dfn[u], val);
+}
+
+ll get_path(ll u, ll v){
+  ll sum = 0;
+  while(top[u] != top[v]){
+    if(dep[top[u]] < dep[top[v]])
+      swap(u, v);
+    // sum += query(1, 1, n, dfn[top[u]], dfn[u]);
+    // sum %= mod;
+    u = fa[top[u]];
+  }
+  if(dep[u] < dep[v]) swap(u, v);
+  sum += query(1, 1, n, dfn[v], dfn[u]);  
+  return sum % mod;
+}
+
+void update_root(ll x, ll val){
+  update(1, 1, n, dfn[x], bot[x], val);
+}
+ll get_root(ll x){
+  return query(1, 1, n, dfn[x], bot[x]);
+}
+int main(){
+  cin >> n >> m >> r >> mod;
+  for(ll i = 1; i <= n; ++i){
+    cin >> vl[i];
+  }
+  for(ll i = 1; i < n; ++i){
+    ll x, y;
+    cin >> x >> y;
+    v[x].push_back(y);
+    v[y].push_back(x);
+  }
+  dfs1(r, 0);
+  dfs2(r, r);
+  build(1, 1, n);
+  for(ll i = 1; i <= m; ++i){
+    ll op, x, y, z;
+    cin >> op;
+    if(op == 1){
+      cin >> x >> y >> z;
+      add_path(x, y, z);
+    }
+    else if(op == 2){
+      cin >> x >> y;
+      cout << get_path(x, y) << '\n';
+    }
+    else if(op == 3){
+      cin >> x >> z;
+      update_root(x, z);
+    }
+    else{
+      cin >> x;
+      cout << get_root(x) << '\n';
+    }
+  }
+}
+\end{minted}
+
+\subsection{lcd2.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const ll N = 2e5 + 10;
+ll fa[N], ht[N], top[N];
+pair<ll, ll> son[N];
+ll len[N];
+vector<pair<ll, ll> > v[N];
+
+
+void dfs1(ll u, ll far){
+  fa[u] = far;
+  for(auto [i, w]: v[u]){
+    if(i == far)
+      continue;
+    dfs1(i, u);
+    ht[u] = max(ht[u], ht[i] + w);
+    if(ht[son[u].first] + son[u].second < ht[i] + w)
+      son[u] = {i, w};
+  }
+} 
+
+ll ans[N];
+void dfs2(ll u, ll head){
+  top[u] = head;
+  if(!son[u].first){
+    return;
+  }
+  len[son[u].first] = len[u] + son[u].second;
+  dfs2(son[u].first, head);
+  for(auto [i, w]: v[u]){
+    if(i == fa[u] || son[u].first == i)
+      continue;
+    len[i] = w;
+    dfs2(i, i);
+  }
+}
+int main(){
+  ll n;
+  cin >> n;
+  for(ll i = 1; i < n; ++i){
+    ll x, y, z;
+    cin >> x >> y >> z;
+    v[x].emplace_back(y, z);
+    v[y].emplace_back(x, z);
+  }
+  dfs1(1, 0);
+  dfs2(1, 1);
+  for(ll i = 1; i <= n; ++i){
+    ans[top[i]] = max(ans[top[i]], len[i]);
+  }
+  ll sum = 0;
+  sort(ans + 1, ans + 1 + n, [](const auto x, const auto y){return x > y;});
+  for(ll i = 1; i <= n; ++i){
+    sum += ans[i] * 2ll;
+    cout << sum << ' ';
+  }
+
+}
 \end{minted}
 
 \subsection{tarjan.cpp}
@@ -205,6 +844,109 @@
     }
   };
 #endif
+\end{minted}
+
+\subsection{tree divide and conquer.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int N = 1e4 + 10;
+vector<pair<int, int>> v[N];
+int n, m;
+bool vis[N];
+int siz[N], dep[N];
+int st[1000 * N];
+int wt[N];
+int ans[101];
+int get(int u, int far, int& num) { // 求子树的重心
+    siz[u] = 1;
+    wt[u] = 0;
+    ++num;
+    int root = -1;
+    for(auto&[i, w]: v[u]){
+        if(i == far || vis[i]) continue;
+        root = max(root, get(i, u, num));
+        siz[u] += siz[i];
+        wt[u] = max(wt[u], siz[i]);
+    }
+    wt[u] = max(wt[u], num - siz[u]);
+    if(wt[u] <= num / 2){
+        return u;
+    }
+    return root;   
+}
+
+void cal(int u, int far, int w, vector<int> &lst) { // 向下暴力递归计算
+    dep[u] = dep[far] + w;
+    lst.push_back(u);
+    for (auto &[i, w] : v[u]) {
+        if (vis[i] || i == far) continue;
+        cal(i, u, w, lst);
+    }
+}
+
+void dfs2(int u, vector<int>& cur) {
+    int num = 0;
+    int root = get(u, 0, num);
+    vis[root] = true;
+    st[0] = 1; 
+    dep[root] = 0;
+    vector<vector<int> > lst;
+    for (auto &[i, w] : v[root]) {
+        if (vis[i]) continue;
+        vector<int> tmp;
+        cal(i, root, w, tmp);
+        lst.push_back(tmp);
+        for (auto &node : tmp) {
+            for(int k = 0; k < cur.size(); ++k){
+                if (cur[k] >= dep[node]) {
+                    ans[k] += st[cur[k] - dep[node]];
+                }
+            }
+        }
+
+        for (auto &node : tmp) {
+            if(dep[node] <= 1e7){
+                ++st[dep[node]];
+            }
+        }
+    }
+    for(auto& i: lst){
+        for(auto& j: i){
+            if(dep[j] <= 1e7)
+                st[dep[j]] = 0;
+        }
+    }
+    st[0] = 0;
+    for (auto &[i, w] : v[root]) {
+        if (vis[i]) continue;
+        dfs2(i, cur);
+    }
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    cin >> n >> m;
+    for (int i = 1; i < n; ++i) {
+        int u, v_, w;
+        cin >> u >> v_ >> w;
+        v[u].emplace_back(v_, w);
+        v[v_].emplace_back(u, w);
+    }
+    vector<int> cur;
+    for(int i = 0; i < m; ++i){
+        int x;
+        cin >> x;
+        cur.push_back(x);
+    }
+    dfs2(1, cur);
+    for(int i = 0; i < m; ++i){ 
+        cout << (ans[i] ? "AYE\n" : "NAY\n");
+    }
+    return 0;
+}
 \end{minted}
 
 \clearpage
@@ -332,6 +1074,167 @@
 #endif
 \end{minted}
 
+\subsection{FFT.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#ifdef IGNODE_THIS_FILE
+/*
+ * 做 FFT
+ * len 必须是 2^k 形式
+ * on == 1 时是 DFT，on == -1 时是 IDFT
+ */
+void fft(Complex y[], int len, int on) {
+    // 位逆序置换
+    change(y, len);
+    // 模拟合并过程，一开始，从长度为一合并到长度为二，一直合并到长度为 len。
+    for (int h = 2; h <= len; h <<= 1) {
+      // wn：当前单位复根的间隔：w^1_h
+      Complex wn(cos(2 * PI / h), sin(on * 2 * PI / h));
+      // 合并，共 len / h 次。
+      for (int j = 0; j < len; j += h) {
+        // 计算当前单位复根，一开始是 1 = w^0_n，之后是以 wn 为间隔递增： w^1_n
+        // ...
+        Complex w(1, 0);
+        for (int k = j; k < j + h / 2; k++) {
+          // 左侧部分和右侧是子问题的解
+          Complex u = y[k];
+          Complex t = w * y[k + h / 2];
+          // 这就是把两部分分治的结果加起来
+          y[k] = u + t;
+          y[k + h / 2] = u - t;
+          // 后半个 「step」 中的ω一定和 「前半个」 中的成相反数
+          // 「红圈」上的点转一整圈「转回来」，转半圈正好转成相反数
+          // 一个数相反数的平方与这个数自身的平方相等
+          w = w * wn;
+        }
+      }
+    }
+    // 如果是 IDFT，它的逆矩阵的每一个元素不只是原元素取倒数，还要除以长度 len。
+    if (on == -1) {
+      for (int i = 0; i < len; i++) {
+        y[i].x /= len;
+        y[i].y /= len;
+      }
+    }
+  }
+
+#endif
+\end{minted}
+
+\subsection{Gause_Xor.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#ifdef IGNODE_THIS_FILE
+
+std::bitset<1010> matrix[2010];  // matrix[1~n]：增广矩阵，0 位置为常数
+std::vector<bool> GaussElimination(int n, int m) { 
+  // n 为未知数个数，m 为方程个数，返回方程组的（多解 / 无解返回一个空的 vector）
+  for (int i = 1; i <= n; i++) {
+    int cur = i;
+    while (cur <= m && !matrix[cur].test(i)) cur++;
+    if (cur > m) return std::vector<bool>(0);
+    if (cur != i) swap(matrix[cur], matrix[i]);
+    for (int j = 1; j <= m; j++)
+      if (i != j && matrix[j].test(i)) matrix[j] ^= matrix[i];
+  }
+  std::vector<bool> ans(n + 1);
+  for (int i = 1; i <= n; i++) ans[i] = matrix[i].test(0);
+  return ans;
+}
+#endif
+\end{minted}
+
+\subsection{NTT.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#include <bits/stdc++.h>
+using namespace std;
+
+int read() {
+  int x = 0, f = 1;
+  char ch = getchar();
+  while (ch < '0' || ch > '9') {
+    if (ch == '-') f = -1;
+    ch = getchar();
+  }
+  while (ch <= '9' && ch >= '0') {
+    x = 10 * x + ch - '0';
+    ch = getchar();
+  }
+  return x * f;
+}
+
+void print(int x) {
+  if (x < 0) putchar('-'), x = -x;
+  if (x >= 10) print(x / 10);
+  putchar(x % 10 + '0');
+}
+
+constexpr int N = 300100, P = 998244353;
+
+int qpow(int x, int y) {
+  int res(1);
+  while (y) {
+    if (y & 1) res = 1ll * res * x % P;
+    x = 1ll * x * x % P;
+    y >>= 1;
+  }
+  return res;
+}
+
+int r[N];
+
+void ntt(int *x, int lim, int opt) {
+  int i, j, k, m, gn, g, tmp;
+  for (i = 0; i < lim; ++i)
+    if (r[i] < i) swap(x[i], x[r[i]]);
+  for (m = 2; m <= lim; m <<= 1) {
+    k = m >> 1;
+    gn = qpow(3, (P - 1) / m);
+    for (i = 0; i < lim; i += m) {
+      g = 1;
+      for (j = 0; j < k; ++j, g = 1ll * g * gn % P) {
+        tmp = 1ll * x[i + j + k] * g % P;
+        x[i + j + k] = (x[i + j] - tmp + P) % P;
+        x[i + j] = (x[i + j] + tmp) % P;
+      }
+    }
+  }
+  if (opt == -1) {
+    reverse(x + 1, x + lim);
+    int inv = qpow(lim, P - 2);
+    for (i = 0; i < lim; ++i) x[i] = 1ll * x[i] * inv % P;
+  }
+}
+
+int A[N], B[N], C[N];
+
+char a[N], b[N];
+
+int main() {
+  int i, lim(1), n;
+  scanf("%s", a);
+  n = strlen(a);
+  for (i = 0; i < n; ++i) A[i] = a[n - i - 1] - '0';
+  while (lim < (n << 1)) lim <<= 1;
+  scanf("%s", b);
+  n = strlen(b);
+  for (i = 0; i < n; ++i) B[i] = b[n - i - 1] - '0';
+  while (lim < (n << 1)) lim <<= 1;
+  for (i = 0; i < lim; ++i) r[i] = (i & 1) * (lim >> 1) + (r[i >> 1] >> 1);
+  ntt(A, lim, 1);
+  ntt(B, lim, 1);
+  for (i = 0; i < lim; ++i) C[i] = 1ll * A[i] * B[i] % P;
+  ntt(C, lim, -1);
+  int len(0);
+  for (i = 0; i < lim; ++i) {
+    if (C[i] >= 10) len = i + 1, C[i + 1] += C[i] / 10, C[i] %= 10;
+    if (C[i]) len = max(len, i);
+  }
+  while (C[len] >= 10) C[len + 1] += C[len] / 10, C[len] %= 10, len++;
+  for (i = len; ~i; --i) putchar(C[i] + '0');
+  puts("");
+  return 0;
+}
+\end{minted}
+
 \subsection{pollar-rho.cpp}
 \begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
 #ifdef IGNORE_THIS_FILE
@@ -456,6 +1359,29 @@
 #endif
 \end{minted}
 
+\subsection{Xor_base.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#ifdef IGNORE_THIS_FILE
+auto insert = [](ll x, vector<ll>& a) -> void {
+  for(int i = 63; i >= 0; --i){
+    if(!((x >> i) & 1)) continue;
+    if(a[i]) x ^= a[i];
+    else{
+      for(int j = 0; j < i; ++j){
+        if((x >> j) & 1) 
+          x ^= a[j];
+      }
+      for(int j = i + 1; j <= 63; ++j){
+        if((a[j] >> i) & 1) 
+          a[j] ^= x;
+      }
+      a[i] = x;
+    }
+  }
+};
+#endif
+\end{minted}
+
 \clearpage
 \section{sort}
 \subsection{merge-sort.cpp}
@@ -485,6 +1411,264 @@
     };
     merge(l, r, mid, a);
   };
+#endif
+\end{minted}
+
+\clearpage
+\section{string}
+\subsection{AC_automation.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#ifdef IGNORE_THIS_FILE
+struct ACAutomaton {
+    static const int N = 2e6 + 6;
+    static const int maxn = 2e5 + 10;
+    
+    int tran[N][26] = {};
+    vector<int> uid[maxn];
+    int fail[N] = {};
+    int ru_degree[maxn] = {};
+    int dp[N] = {};
+    int ans[maxn] = {};
+    int tot = 0;
+
+    void clear() {
+        for(int i = 0; i < N; i++) {
+            memset(tran[i], 0, sizeof(tran[i]));
+            fail[i] = dp[i] = 0;
+        }
+        for(int i = 0; i < maxn; i++) uid[i].clear();
+        memset(ru_degree, 0, sizeof(ru_degree));
+        memset(ans, 0, sizeof(ans));
+        tot = 0;
+    }
+
+    void insert(const string& s, int id) {
+        int u = 0;
+        for(char ch : s) {
+            int c = ch - 'a';
+            if(!tran[u][c]) tran[u][c] = ++tot;
+            u = tran[u][c];
+        }
+        uid[u].push_back(id);
+    }
+
+    void build() {
+        queue<int> q;
+        for(int i = 0; i < 26; i++)
+            if(tran[0][i]) q.push(tran[0][i]);
+        
+        while(!q.empty()) {
+            int u = q.front();
+            q.pop();
+            for(int i = 0; i < 26; i++) {
+                if(tran[u][i]) {
+                    fail[tran[u][i]] = tran[fail[u]][i];
+                    q.push(tran[u][i]);
+                } else {
+                    tran[u][i] = tran[fail[u]][i];
+                }
+            }
+        }
+    }
+
+    void query(const string& t) {
+        int u = 0;
+        for(char ch : t) {
+            u = tran[u][ch - 'a'];
+            dp[u]++;
+        }
+
+        for(int i = 1; i <= tot; i++)
+            ru_degree[fail[i]]++;
+        
+        queue<int> q;
+        for(int i = 1; i <= tot; i++)
+            if(!ru_degree[i]) q.push(i);
+        
+        while(!q.empty()) {
+            int u = q.front();
+            q.pop();
+            dp[fail[u]] += dp[u];
+            if(--ru_degree[fail[u]] == 0)
+                q.push(fail[u]);
+        }
+
+        for(int i = 1; i <= tot; i++)
+            for(int id : uid[i])
+                ans[id] = dp[i];
+    }
+};
+
+#endif
+\end{minted}
+
+\subsection{KMP.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#ifdef IGNORE_THIS_FILE
+
+
+vector<int> prefix_function(string s) {
+  int n = (int)s.length();
+  vector<int> pi(n);
+  for (int i = 1; i < n; i++) {
+    int j = pi[i - 1];
+    while (j > 0 && s[i] != s[j]) j = pi[j - 1];
+    if (s[i] == s[j]) j++;
+    pi[i] = j;
+  }
+  return pi;
+}
+
+
+void compute_automaton(string s, vector<vector<int>>& aut) {
+  s += '#';
+  int n = s.size();
+  vector<int> pi = prefix_function(s);
+  aut.assign(n, vector<int>(26));
+  for (int i = 0; i < n; i++) {
+    for (int c = 0; c < 26; c++) {
+      if (i > 0 && 'a' + c != s[i])
+        aut[i][c] = aut[pi[i - 1]][c];
+      else
+        aut[i][c] = i + ('a' + c == s[i]);
+    }
+  }
+}
+
+
+#endif
+\end{minted}
+
+\subsection{Manacher.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#ifdef IGNORE_THIS_FILE
+
+struct Manacher {
+    string transformed;
+    vector<int> d1;
+
+    Manacher(const string& s) {
+        // 预处理字符串，插入'#'
+        transformed = "#";
+        for (char c : s) {
+            transformed += c;
+            transformed += '#';
+        }
+        int n = transformed.size();
+        d1.resize(n);
+        // 计算每个中心点的最长回文半径
+        int l = 0, r = -1;
+        for (int i = 0; i < n; ++i) {
+            int k = (i > r) ? 1 : min(d1[l + r - i], r - i + 1);
+            while (i - k >= 0 && i + k < n && transformed[i - k] == transformed[i + k]) {
+                k++;
+            }
+            d1[i] = k--;
+            if (i + k > r) {
+                l = i - k;
+                r = i + k;
+            }
+        }
+    }
+};
+
+#endif
+\end{minted}
+
+\subsection{PAM.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#include <vector>
+#include <string>
+#include <array>
+using namespace std;
+
+struct Eertree {
+    vector<array<int, 26>> tr;    // 转移数组
+    vector<int> fail;             // 失配指针
+    vector<int> len;              // 节点表示的回文串长度
+    vector<int> ans;              // 存储每个位置的回文深度
+    vector<int> depth;            // 节点深度
+    int tot, last;                // 总节点数和当前最后节点
+
+    Eertree() {
+        tr.resize(2);
+        tr[0].fill(0), tr[1].fill(0);
+        fail.resize(2);
+        len.resize(2);
+        depth.resize(2);
+        
+        fail[0] = 1;  // 偶根失配指向奇根
+        fail[1] = 0;  // 奇根失配指向偶根
+        len[0] = 0;   // 偶根长度0
+        len[1] = -1;  // 奇根长度-1
+        depth[0] = 0;
+        depth[1] = 0;
+        tot = 1;      // 已创建两个节点
+        last = 1;     // 初始指向奇根
+    }
+
+    void insert(const string& s) {
+        ans.resize(s.size());
+        for (int i = 0; i < s.size(); i++) {
+            int c = s[i] - 'a';
+            int fa = get_fail(last, i, s);
+            
+            if (!tr[fa][c]) {
+                create_node(fa, c, i, s);
+            }
+            last = tr[fa][c];
+            ans[i] = depth[last];
+        }
+    }
+
+    int get_fail(int pos, int idx, const string& s) {
+        while (idx - len[pos] - 1 < 0 || 
+               s[idx] != s[idx - len[pos] - 1]) {
+            pos = fail[pos];
+        }
+        return pos;
+    }
+
+    void create_node(int fa, int c, int idx, const string& s) {
+        int cur = ++tot;
+        tr.resize(tot + 1);
+        tr.back().fill(0);
+        
+        // 扩展关联数组
+        fail.resize(tot + 1);
+        len.resize(tot + 1);
+        depth.resize(tot + 1);
+
+        tr[fa][c] = cur;
+        len[cur] = len[fa] + 2;
+        
+        // 设置失配指针
+        int tmp = get_fail(fail[fa], idx, s);
+        fail[cur] = (fa != 1) ? tr[tmp][c] : 0;
+        
+        // 计算节点深度
+        depth[cur] = depth[fail[cur]] + 1;
+    }
+};
+\end{minted}
+
+\subsection{z_function.cpp}
+\begin{minted}[frame=lines, fontsize=\small, linenos]{C++}
+#ifdef IGNORE_THIS_FILE
+vector<int> z_function(string s) {
+    int n = (int)s.size();
+    vector<int> z(n);
+    for(int i = 1, l = 0, r = 0; i < n; ++i) {
+        if(i <= r && z[i - l] < r - i + 1) {
+            z[i] = z[i - l];
+        }
+        else {
+            z[i] = max(0, r - i + 1);
+            while(i + z[i] < n && s[z[i]] == s[i + z[i]]) ++z[i];
+        }
+        if(i + z[i] - 1 > r) l = i, r = i + z[i] - 1;
+    }
+}
 #endif
 \end{minted}
 
